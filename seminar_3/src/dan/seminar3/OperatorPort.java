@@ -8,6 +8,8 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class OperatorPort extends Thread {
+	private static final String PORT_CONTAINERE_CSV = "portContainere.csv";
+
 	public static void main(String[] args) {
 		int[] nrContainere1 = new int[4];
 		int[] nrContainere2 = new int[4];
@@ -33,63 +35,13 @@ public class OperatorPort extends Thread {
 		flota.add(portContainer1);
 		flota.add(portContainer2);
 		flota.add(portContainer3);
-		for (PortContainer portContainer : flota)
+		for (PortContainer portContainer : flota) {
 			System.out.println(portContainer.toString());
-
-		FileWriter outFile = null;
-		BufferedWriter writer = null;
-
-		try {
-			outFile = new FileWriter("portContainere.csv", false);
-			writer = new BufferedWriter(outFile);
-
-			for (PortContainer i : flota) {
-				System.out.println(i.toString());
-				writer.write(i.toString());
-				writer.newLine();
-			}
-
-			writer.close();
-			outFile.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
-		ArrayDeque<PortContainer> coada = new ArrayDeque<PortContainer>();
 
-		FileReader inFile = null;
-		BufferedReader reader = null;
+		writeToFile(flota, PORT_CONTAINERE_CSV);
 
-		try {
-			inFile = new FileReader("portContainere.csv");
-			reader = new BufferedReader(inFile);
-
-			Scanner fileScanner = new Scanner(reader);
-			while (fileScanner.hasNext()) {
-				String linie = fileScanner.nextLine();
-				Scanner lineScanner = new Scanner(linie);
-				lineScanner.useDelimiter(",");
-
-				String clasaCitita = lineScanner.next();
-				lineScanner.close();
-				Class<?> clasa = Class.forName(clasaCitita);
-				Object local = clasa.getDeclaredConstructor().newInstance();
-				if (local instanceof PortContainer) {
-					local = ((PortContainer) local).dinString(linie, ",");
-					coada.offerLast((PortContainer) local);
-				}
-			}
-			fileScanner.close();
-
-			reader.close();
-			inFile.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
-				| InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		ArrayDeque<PortContainer> coada = readFromFile(PORT_CONTAINERE_CSV);
 
 		PortContainer iter = null;
 		while (!coada.isEmpty()) {
@@ -152,4 +104,66 @@ public class OperatorPort extends Thread {
 		}
 
 	}
+
+	private static void writeToFile(ArrayList<PortContainer> flota, String fileName) {
+		FileWriter outFile = null;
+		BufferedWriter writer = null;
+
+		try {
+			outFile = new FileWriter(fileName, false);
+			writer = new BufferedWriter(outFile);
+
+			for (PortContainer i : flota) {
+				System.out.println(i.toString());
+				writer.write(i.toString());
+				writer.newLine();
+			}
+
+			writer.close();
+			outFile.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static ArrayDeque<PortContainer> readFromFile(String fileName) {
+		ArrayDeque<PortContainer> coada = new ArrayDeque<PortContainer>();
+		FileReader inFile = null;
+		BufferedReader reader = null;
+
+		try {
+			inFile = new FileReader(fileName);
+			reader = new BufferedReader(inFile);
+
+			Scanner fileScanner = new Scanner(reader);
+			while (fileScanner.hasNext()) {
+				String linie = fileScanner.nextLine();
+				Scanner lineScanner = new Scanner(linie);
+				lineScanner.useDelimiter(",");
+
+				String clasaCitita = lineScanner.next();
+				lineScanner.close();
+				Class<?> clasa = Class.forName(clasaCitita);
+				Object local = clasa.getDeclaredConstructor().newInstance();
+				if (local instanceof PortContainer) {
+					local = ((PortContainer) local).dinString(linie, ",");
+					coada.offerLast((PortContainer) local);
+				}
+			}
+			fileScanner.close();
+
+			reader.close();
+			inFile.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException
+				| InvocationTargetException e) {
+			e.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		return coada;
+
+	}
+
 }
